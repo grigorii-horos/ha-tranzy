@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tranzy",
+        "description": "Live boards for public-transport stops from the Tranzy open-data API.",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "Create one at https://apps.tranzy.ai/accounts — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
+        }
+      },
+      "agency": {
+        "title": "Agency",
+        "data": {
+          "agency_id": "Agency"
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API key",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "Create one at https://apps.tranzy.ai/accounts — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "The key was refused (HTTP 403). Check it, or wait a few minutes after creating it.",
+      "cannot_connect": "Tranzy API is unreachable.",
+      "agency_forbidden": "This key is not allowed for that agency: add the agency to the key's application."
+    },
+    "abort": {
+      "already_configured": "This agency is already added.",
+      "reauth_successful": "The key was updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Arrival estimate",
+        "data": {
+          "speed_kmh": "Average speed",
+          "layover_min": "Wait at the terminus",
+          "scan_interval": "Update every",
+          "max_age_min": "Ignore positions older than"
+        },
+        "data_description": {
+          "speed_kmh": "Distance along the line is driven at this speed, stops and lights included.",
+          "layover_min": "Added for a vehicle that first has to reach the terminus and turn back.",
+          "scan_interval": "One request per update; the free quota is 5000 a day.",
+          "max_age_min": "Vehicles whose last position is older are not shown."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "stop": {
+      "entry_type": "Stop",
+      "initiate_flow": {
+        "user": "Add stop"
+      },
+      "step": {
+        "user": {
+          "title": "Find a stop",
+          "data": {
+            "query": "Stop name"
+          },
+          "data_description": {
+            "query": "Any part of the name, diacritics optional: `gara`, `bariera`."
+          }
+        },
+        "pick": {
+          "title": "Pick the pole",
+          "description": "A stop usually has a pole on each side of the street: pick the one whose routes go where you need.",
+          "data": {
+            "stop_id": "Stop"
+          }
+        }
+      },
+      "error": {
+        "no_stops": "No served stop matches this name."
+      },
+      "abort": {
+        "entry_not_loaded": "The integration is not loaded: fix its error first.",
+        "already_configured": "This stop is already added."
+      }
+    }
+  }
+}
