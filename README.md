@@ -240,16 +240,26 @@ Nearest few minutes are good; half an hour out is a hint.
 ## Development
 
 ```sh
-python3 -m unittest discover -s tests              # the model, no Home Assistant needed
+python3 tests/test_model.py                         # the model alone, no Home Assistant needed
+pip install -r requirements_test.txt && pytest     # everything: config flow, stops, sensor, card
 TRANZY_API_KEY=… script/board.py --agency 4 gara   # a live board in the terminal
+TRANZY_API_KEY=… script/accuracy.py --minutes 90   # score the estimate against real arrivals
 script/publish.sh                                  # copy to the HA host
 ```
 
 `custom_components/tranzy/model.py` is plain Python — the static index, stop
 names, the arrival estimate — and holds everything worth testing; the rest is
-Home Assistant glue. `script/board.py` runs the same model against the live API
-and prints the board, which is the quickest way to check a change on real data.
+Home Assistant glue, covered by `tests/test_init.py` on a real Home Assistant
+(pytest-homeassistant-custom-component) against a fake API.
+`script/board.py` runs the same model against the live API and prints the board,
+the quickest way to check a change on real data. `script/accuracy.py` watches
+every vehicle pass every stop and scores each earlier prediction for it — see
+[Accuracy](#accuracy).
 
 After Python changes Home Assistant has to restart; after card changes a browser
 reload is enough. `script/publish.sh` takes `HA_SSH_HOST` and `HA_CONFIG` from
 the environment.
+
+## License
+
+MIT

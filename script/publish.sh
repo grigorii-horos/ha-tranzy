@@ -6,5 +6,5 @@ set -eu
 cd "$(dirname "$0")/.."
 HOST="${HA_SSH_HOST:-grigorii@server-home.lan}"
 CONFIG="${HA_CONFIG:-Services/podman/homeassistant/config}"
-python3 -I -m unittest discover -s tests -q
+python3 -I tests/test_model.py
 rsync -av --delete --exclude __pycache__ custom_components/tranzy/ "$HOST:$CONFIG/custom_components/tranzy/"
