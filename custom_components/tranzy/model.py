@@ -240,46 +240,74 @@ class TransitIndex:
 
     # ---- stop search -------------------------------------------------------
 
-    def describe_stop(self, stop_id: int, limit: int = 3) -> str:
-        """Where vehicles from this pole go: `→ Parcul de Troleibuze nr. 2 (5, 20) · → str. Grenoble (8)`.
+    def _twins(self, stop_id: int, radius_m: float = 400.0) -> list[Stop]:
+        """Other served poles with the same name close by: the other side of the street."""
+        stop = self.stops[stop_id]
+        x, y = self._xy(stop.lat, stop.lon)
+        out = []
+        for s in self.stops.values():
+            if s.stop_id == stop_id or s.stop_id not in self.trips_by_stop:
+                continue
+            if normalize(s.name) != normalize(stop.name):
+                continue
+            sx, sy = self._xy(s.lat, s.lon)
+            if math.hypot(sx - x, sy - y) <= radius_m:
+                out.append(s)
+        return out
 
-        Grouped by destination, so the routes read as routes and not as part of
-        the stop's name. Trips that end at this pole are listed as `terminus`.
-        """
-        towards: dict[str, list[str]] = defaultdict(list)
-        ending: list[str] = []
-        for trip_id in self.trips_by_stop.get(stop_id, []):
-            trip = self.trips[trip_id]
-            route = self.routes[trip.route_id].short_name
-            bucket = ending if list(trip.stops)[-1] == stop_id else towards[trip.headsign]
-            if route not in bucket:
-                bucket.append(route)
-        groups = sorted(towards.items(), key=lambda kv: (-len(kv[1]), kv[0]))
-        parts = [f"→ {head} ({', '.join(sorted(rs, key=_route_sort_key))})" for head, rs in groups[:limit]]
-        if len(groups) > limit:
-            parts.append(f"+{len(groups) - limit}")
-        if ending:
-            parts.append(f"terminus ({', '.join(sorted(ending, key=_route_sort_key))})")
-        return " · ".join(parts)
+    def _side(self, stop_id: int, twins: list[Stop]) -> str:
+        """Compass side of this pole within its group of twins: `N`, `SE`, …"""
+        group = [self.stops[stop_id], *twins]
+        cx = sum(self._xy(s.lat, s.lon)[0] for s in group) / len(group)
+        cy = sum(self._xy(s.lat, s.lon)[1] for s in group) / len(group)
+        x, y = self._xy(self.stops[stop_id].lat, self.stops[stop_id].lon)
+        bearing = math.degrees(math.atan2(x - cx, y - cy)) % 360
+        return ("N", "NE", "E", "SE", "S", "SW", "W", "NW")[int((bearing + 22.5) // 45) % 8]
 
     def stop_title(self, stop_id: int) -> str:
-        """The stop's name; `name → where most routes go` when another pole shares it."""
+        """The stop's own name, made unique only from the stop's own data.
+
+        A pole that shares its name with one across the street gets its stop
+        code (`Gara #13`), or, where the feed has no code, its compass side
+        within the pair (`… (NE side)`).
+        """
         stop = self.stops[stop_id]
-        twins = [
-            s for s in self.stops.values()
-            if s.stop_id != stop_id and s.stop_id in self.trips_by_stop and normalize(s.name) == normalize(stop.name)
-        ]
+        twins = self._twins(stop_id)
         if not twins:
             return stop.name
-        heads: dict[str, int] = defaultdict(int)
+        codes = {s.code for s in twins}
+        if stop.code and stop.code not in codes:
+            return f"{stop.name} #{stop.code}"
+        return f"{stop.name} ({self._side(stop_id, twins)} side)"
+
+    def describe_stop(self, stop_id: int, limit: int = 3) -> str:
+        """`routes 47, 48 · next: sat. Ciorescu, str. Albișoara` for one pole.
+
+        The next stop tells the two sides of a street apart better than a
+        destination: it is a place one knows, not the far end of some route.
+        """
+        routes: list[str] = []
+        nexts: dict[str, int] = defaultdict(int)
+        ending = True
         for trip_id in self.trips_by_stop.get(stop_id, []):
             trip = self.trips[trip_id]
-            if list(trip.stops)[-1] != stop_id:
-                heads[trip.headsign] += 1
-        if not heads:
-            return f"{stop.name} (terminus)"
-        top = max(heads.items(), key=lambda kv: (kv[1], kv[0]))[0]
-        return f"{stop.name} → {top}"
+            name = self.routes[trip.route_id].short_name
+            if name not in routes:
+                routes.append(name)
+            order = list(trip.stops)
+            i = order.index(stop_id)
+            if i + 1 < len(order):
+                ending = False
+                nexts[self.stops[order[i + 1]].name] += 1
+        routes.sort(key=_route_sort_key)
+        shown = ", ".join(routes[:8]) + (f" +{len(routes) - 8}" if len(routes) > 8 else "")
+        parts = [f"routes {shown}"]
+        if nexts:
+            top = sorted(nexts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+            parts.append("next: " + " / ".join(n for n, _ in top))
+        elif ending:
+            parts.append("terminus")
+        return " · ".join(parts)
 
     def search_stops(self, query: str, limit: int = 40) -> list[tuple[int, str]]:
         """Served stops whose name contains `query`, as (stop_id, label)."""
@@ -290,7 +318,7 @@ class TransitIndex:
             if stop_id in self.trips_by_stop and q in normalize(stop.name)
         ]
         found.sort(key=lambda s: (normalize(s.name) != q, s.name, s.stop_id))
-        return [(s.stop_id, f"{s.name}   {self.describe_stop(s.stop_id)}") for s in found[:limit]]
+        return [(s.stop_id, f"{self.stop_title(s.stop_id)}  ·  {self.describe_stop(s.stop_id)}") for s in found[:limit]]
 
     # ---- live --------------------------------------------------------------
 

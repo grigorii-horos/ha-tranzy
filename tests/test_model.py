@@ -115,9 +115,10 @@ class ModelTest(unittest.TestCase):
         found = self.idx.search_stops("soseaua")
         self.assertEqual([s for s, _ in found], [10])
         labels = dict(self.idx.search_stops("centru"))
-        self.assertEqual(labels[11], "Centru   → North (5)")
-        self.assertEqual(labels[21], "Centru   → South (5)")
-        self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord   → South (5) · terminus (5)")
+        # pole 11 is ~4 m west of 21; the next stop tells the sides apart
+        self.assertEqual(labels[11], "Centru (W side)  ·  routes 5 · next: Nord")
+        self.assertEqual(labels[21], "Centru (E side)  ·  routes 5 · next: Șoseaua Sud")
+        self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord  ·  routes 5 · next: Centru")
 
     def test_terminus_shows_departures_not_terminating_arrivals(self):
         # stop 12 ends 1_0 and starts 1_1: a northbound vehicle at 3/4 of the line
@@ -131,8 +132,8 @@ class ModelTest(unittest.TestCase):
         self.assertAlmostEqual(minutes, 5 + 278 / (20 / 3.6) / 60, delta=0.2)
 
     def test_stop_title_tells_twin_poles_apart(self):
-        self.assertEqual(self.idx.stop_title(11), "Centru → North")
-        self.assertEqual(self.idx.stop_title(21), "Centru → South")
+        self.assertEqual(self.idx.stop_title(11), "Centru (W side)")
+        self.assertEqual(self.idx.stop_title(21), "Centru (E side)")
         self.assertEqual(self.idx.stop_title(10), "Șoseaua Sud")
 
     def test_as_dict_minutes_never_negative(self):

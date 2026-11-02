@@ -74,7 +74,7 @@
         },
         "pick": {
           "title": "Pick the pole",
-          "description": "A stop usually has a pole on each side of the street: pick the one whose routes go where you need.",
+          "description": "A stop usually has a pole on each side of the street, with the same name. Poles are told apart by the stop code (#13) or the side of the street (NE side); `next` is the stop a vehicle reaches after this one.",
           "data": {
             "stop_id": "Stop"
           }

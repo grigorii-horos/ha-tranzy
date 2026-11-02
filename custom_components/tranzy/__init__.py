@@ -15,7 +15,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
 from .api import TranzyApi
-from .const import CARD_URL, CONF_AGENCY_ID, DOMAIN
+from .const import CARD_URL, CONF_AGENCY_ID, CONF_STOP_ID, DOMAIN
 from .coordinator import TranzyCoordinator
 
 PLATFORMS = [Platform.SENSOR]
@@ -41,9 +41,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: TranzyConfigEntry) -> bo
     coordinator = TranzyCoordinator(hass, entry, api)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
+    _migrate_stop_titles(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
+
+
+def _migrate_stop_titles(hass: HomeAssistant, entry: TranzyConfigEntry, coordinator: TranzyCoordinator) -> None:
+    """0.1.0 titled stops `name → destination`; give them their own name back.
+
+    Runs before the update listener is added, so it does not trigger a reload.
+    Titles without the arrow (the new form, or renamed by hand) are left alone.
+    """
+    index = coordinator.index
+    for sub in list(entry.subentries.values()):
+        stop_id = int(sub.data.get(CONF_STOP_ID, -1))
+        if " → " in sub.title and index and stop_id in index.stops:
+            hass.config_entries.async_update_subentry(entry, sub, title=index.stop_title(stop_id))
 
 
 async def _async_reload(hass: HomeAssistant, entry: TranzyConfigEntry) -> None:
