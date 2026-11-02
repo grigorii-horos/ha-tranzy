@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- A departure board: three rows, each a route badge, a destination and minutes. -->
+  <rect x="16" y="56" width="480" height="400" rx="64" fill="#1f2a37"/>
+  <!-- row 1: trolleybus, arriving now -->
+  <rect x="64" y="112" width="104" height="64" rx="16" fill="#1e88e5"/>
+  <rect x="196" y="132" width="164" height="24" rx="12" fill="#cfd8e3"/>
+  <circle cx="420" cy="144" r="26" fill="#ffa600"/>
+  <!-- row 2: bus -->
+  <rect x="64" y="224" width="104" height="64" rx="16" fill="#43a047"/>
+  <rect x="196" y="244" width="132" height="24" rx="12" fill="#cfd8e3"/>
+  <rect x="380" y="244" width="68" height="24" rx="12" fill="#ffffff"/>
+  <!-- row 3: bus -->
+  <rect x="64" y="336" width="104" height="64" rx="16" fill="#43a047"/>
+  <rect x="196" y="356" width="152" height="24" rx="12" fill="#cfd8e3"/>
+  <rect x="380" y="356" width="68" height="24" rx="12" fill="#ffffff"/>
+</svg>
