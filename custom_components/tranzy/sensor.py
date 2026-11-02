@@ -52,6 +52,11 @@ class StopBoardSensor(CoordinatorEntity[TranzyCoordinator], SensorEntity):
             model="Stop",
             model_id=str(self._stop_id),
             entry_type=DeviceEntryType.SERVICE,
+            configuration_url=(
+                f"https://www.openstreetmap.org/?mlat={stop.lat}&mlon={stop.lon}#map=19/{stop.lat}/{stop.lon}"
+                if stop
+                else None
+            ),
         )
 
     @property

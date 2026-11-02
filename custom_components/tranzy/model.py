@@ -281,32 +281,35 @@ class TransitIndex:
         return f"{stop.name} ({self._side(stop_id, twins)} side)"
 
     def describe_stop(self, stop_id: int, limit: int = 3) -> str:
-        """`routes 47, 48 · next: sat. Ciorescu, str. Albișoara` for one pole.
+        """`next: sat. Goian (47) / str. Ion Creangă (48)` for one pole.
 
-        The next stop tells the two sides of a street apart better than a
-        destination: it is a place one knows, not the far end of some route.
+        The stop after this one tells the two sides of a street apart better
+        than a destination. Routes may split right after the stop, so each next
+        stop carries the routes that go there.
         """
-        routes: list[str] = []
-        nexts: dict[str, int] = defaultdict(int)
-        ending = True
+        nexts: dict[str, list[str]] = defaultdict(list)
+        ending: list[str] = []
         for trip_id in self.trips_by_stop.get(stop_id, []):
             trip = self.trips[trip_id]
-            name = self.routes[trip.route_id].short_name
-            if name not in routes:
-                routes.append(name)
+            route = self.routes[trip.route_id].short_name
             order = list(trip.stops)
             i = order.index(stop_id)
-            if i + 1 < len(order):
-                ending = False
-                nexts[self.stops[order[i + 1]].name] += 1
-        routes.sort(key=_route_sort_key)
-        shown = ", ".join(routes[:8]) + (f" +{len(routes) - 8}" if len(routes) > 8 else "")
-        parts = [f"routes {shown}"]
-        if nexts:
-            top = sorted(nexts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
-            parts.append("next: " + " / ".join(n for n, _ in top))
-        elif ending:
-            parts.append("terminus")
+            bucket = nexts[self.stops[order[i + 1]].name] if i + 1 < len(order) else ending
+            if route not in bucket:
+                bucket.append(route)
+
+        def routes(rs: list[str]) -> str:
+            rs = sorted(rs, key=_route_sort_key)
+            return ", ".join(rs[:6]) + (f" +{len(rs) - 6}" if len(rs) > 6 else "")
+
+        groups = sorted(nexts.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+        parts = []
+        if groups:
+            shown = " / ".join(f"{name} ({routes(rs)})" for name, rs in groups[:limit])
+            more = f" / +{len(groups) - limit}" if len(groups) > limit else ""
+            parts.append(f"next: {shown}{more}")
+        if ending:
+            parts.append(f"terminus ({routes(ending)})")
         return " · ".join(parts)
 
     def search_stops(self, query: str, limit: int = 40) -> list[tuple[int, str]]:
