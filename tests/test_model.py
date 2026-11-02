@@ -115,8 +115,9 @@ class ModelTest(unittest.TestCase):
         found = self.idx.search_stops("soseaua")
         self.assertEqual([s for s, _ in found], [10])
         labels = dict(self.idx.search_stops("centru"))
-        self.assertIn("5 → North", labels[11])
-        self.assertIn("5 → South", labels[21])
+        self.assertEqual(labels[11], "Centru   → North (5)")
+        self.assertEqual(labels[21], "Centru   → South (5)")
+        self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord   → South (5) · terminus (5)")
 
     def test_stop_title_tells_twin_poles_apart(self):
         self.assertEqual(self.idx.stop_title(11), "Centru → North")

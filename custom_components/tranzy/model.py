@@ -240,20 +240,27 @@ class TransitIndex:
 
     # ---- stop search -------------------------------------------------------
 
-    def describe_stop(self, stop_id: int, limit: int = 4) -> str:
-        """`5 → Parcul de Troleibuze nr. 2, 8 → str. Grenoble, …` for one pole."""
-        seen: list[str] = []
+    def describe_stop(self, stop_id: int, limit: int = 3) -> str:
+        """Where vehicles from this pole go: `→ Parcul de Troleibuze nr. 2 (5, 20) · → str. Grenoble (8)`.
+
+        Grouped by destination, so the routes read as routes and not as part of
+        the stop's name. Trips that end at this pole are listed as `terminus`.
+        """
+        towards: dict[str, list[str]] = defaultdict(list)
+        ending: list[str] = []
         for trip_id in self.trips_by_stop.get(stop_id, []):
             trip = self.trips[trip_id]
-            route = self.routes[trip.route_id]
-            last = list(trip.stops)[-1]
-            target = trip.headsign if last != stop_id else f"{trip.headsign} (terminus)"
-            item = f"{route.short_name} → {target}"
-            if item not in seen:
-                seen.append(item)
-        seen.sort(key=_route_sort_key)
-        more = f", +{len(seen) - limit}" if len(seen) > limit else ""
-        return ", ".join(seen[:limit]) + more
+            route = self.routes[trip.route_id].short_name
+            bucket = ending if list(trip.stops)[-1] == stop_id else towards[trip.headsign]
+            if route not in bucket:
+                bucket.append(route)
+        groups = sorted(towards.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+        parts = [f"→ {head} ({', '.join(sorted(rs, key=_route_sort_key))})" for head, rs in groups[:limit]]
+        if len(groups) > limit:
+            parts.append(f"+{len(groups) - limit}")
+        if ending:
+            parts.append(f"terminus ({', '.join(sorted(ending, key=_route_sort_key))})")
+        return " · ".join(parts)
 
     def stop_title(self, stop_id: int) -> str:
         """The stop's name; `name → where most routes go` when another pole shares it."""
@@ -283,7 +290,7 @@ class TransitIndex:
             if stop_id in self.trips_by_stop and q in normalize(stop.name)
         ]
         found.sort(key=lambda s: (normalize(s.name) != q, s.name, s.stop_id))
-        return [(s.stop_id, f"{s.name} · {self.describe_stop(s.stop_id)}") for s in found[:limit]]
+        return [(s.stop_id, f"{s.name}   {self.describe_stop(s.stop_id)}") for s in found[:limit]]
 
     # ---- live --------------------------------------------------------------
 
@@ -368,7 +375,6 @@ class TransitIndex:
         return sorted(best.values(), key=lambda a: a.arrival)
 
 
-def _route_sort_key(item: str) -> tuple[int, str]:
-    head = item.split(" ", 1)[0]
-    digits = "".join(c for c in head if c.isdigit())
-    return (int(digits) if digits else 10_000, item)
+def _route_sort_key(route: str) -> tuple[int, str]:
+    digits = "".join(c for c in route if c.isdigit())
+    return (int(digits) if digits else 10_000, route)
