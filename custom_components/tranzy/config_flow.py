@@ -50,6 +50,7 @@ from .const import (
     SUBENTRY_STOP,
 )
 
+PLACEHOLDERS = {"accounts_url": "https://apps.tranzy.ai/accounts"}
 KEY_SCHEMA = vol.Schema(
     {vol.Required(CONF_API_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))}
 )
@@ -97,7 +98,9 @@ class TranzyConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._key = key
                 return await self.async_step_agency()
             errors["base"] = error
-        return self.async_show_form(step_id="user", data_schema=KEY_SCHEMA, errors=errors)
+        return self.async_show_form(
+            step_id="user", data_schema=KEY_SCHEMA, errors=errors, description_placeholders=PLACEHOLDERS
+        )
 
     async def async_step_agency(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
@@ -131,7 +134,9 @@ class TranzyConfigFlow(ConfigFlow, domain=DOMAIN):
             if not (error := await self._check(key, entry.data[CONF_AGENCY_ID])):
                 return self.async_update_reload_and_abort(entry, data_updates={CONF_API_KEY: key})
             errors["base"] = error
-        return self.async_show_form(step_id="reauth_confirm", data_schema=KEY_SCHEMA, errors=errors)
+        return self.async_show_form(
+            step_id="reauth_confirm", data_schema=KEY_SCHEMA, errors=errors, description_placeholders=PLACEHOLDERS
+        )
 
 
 class TranzyOptionsFlow(OptionsFlow):

@@ -8,7 +8,7 @@
           "api_key": "API key"
         },
         "data_description": {
-          "api_key": "Create one at https://apps.tranzy.ai/accounts — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
+          "api_key": "Create one at {accounts_url} — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
         }
       },
       "agency": {
@@ -23,7 +23,7 @@
           "api_key": "API key"
         },
         "data_description": {
-          "api_key": "Create one at https://apps.tranzy.ai/accounts — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
+          "api_key": "Create one at {accounts_url} — an application with your agency, then a key in it. A new key may answer 403 for a few minutes."
         }
       }
     },
