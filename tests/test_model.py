@@ -116,9 +116,9 @@ class ModelTest(unittest.TestCase):
         self.assertEqual([s for s, _ in found], [10])
         labels = dict(self.idx.search_stops("centru"))
         # pole 11 is ~4 m west of 21; the next stop tells the sides apart
-        self.assertEqual(labels[11], "Centru (W side)  ·  next: Nord (5)")
-        self.assertEqual(labels[21], "Centru (E side)  ·  next: Șoseaua Sud (5)")
-        self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord  ·  next: Centru (5) · terminus (5)")
+        self.assertEqual(labels[11], "Centru (W side) [5] · next: Nord")
+        self.assertEqual(labels[21], "Centru (E side) [5] · next: Șoseaua Sud")
+        self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord [5] · next: Centru · terminus (5)")
 
     def test_terminus_shows_departures_not_terminating_arrivals(self):
         # stop 12 ends 1_0 and starts 1_1: a northbound vehicle at 3/4 of the line

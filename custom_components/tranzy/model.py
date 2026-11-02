@@ -281,7 +281,7 @@ class TransitIndex:
         return f"{stop.name} ({self._side(stop_id, twins)} side)"
 
     def describe_stop(self, stop_id: int, limit: int = 3) -> str:
-        """`next: sat. Goian (47) / str. Ion Creangă (48)` for one pole.
+        """`[47, 48] · next: sat. Goian (47) / str. Ion Creangă (48)` for one pole.
 
         The stop after this one tells the two sides of a street apart better
         than a destination. Routes may split right after the stop, so each next
@@ -302,9 +302,12 @@ class TransitIndex:
             rs = sorted(rs, key=_route_sort_key)
             return ", ".join(rs[:6]) + (f" +{len(rs) - 6}" if len(rs) > 6 else "")
 
+        every = sorted({r for rs in nexts.values() for r in rs} | set(ending), key=_route_sort_key)
+        parts = [f"[{', '.join(every[:10])}{f' +{len(every) - 10}' if len(every) > 10 else ''}]"]
         groups = sorted(nexts.items(), key=lambda kv: (-len(kv[1]), kv[0]))
-        parts = []
-        if groups:
+        if len(groups) == 1:
+            parts.append(f"next: {groups[0][0]}")
+        elif groups:
             shown = " / ".join(f"{name} ({routes(rs)})" for name, rs in groups[:limit])
             more = f" / +{len(groups) - limit}" if len(groups) > limit else ""
             parts.append(f"next: {shown}{more}")
@@ -321,7 +324,7 @@ class TransitIndex:
             if stop_id in self.trips_by_stop and q in normalize(stop.name)
         ]
         found.sort(key=lambda s: (normalize(s.name) != q, s.name, s.stop_id))
-        return [(s.stop_id, f"{self.stop_title(s.stop_id)}  ·  {self.describe_stop(s.stop_id)}") for s in found[:limit]]
+        return [(s.stop_id, f"{self.stop_title(s.stop_id)} {self.describe_stop(s.stop_id)}") for s in found[:limit]]
 
     # ---- live --------------------------------------------------------------
 
