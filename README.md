@@ -207,8 +207,8 @@ vehicle is 5 minutes away"; for one route, read `arrivals` with a template:
 
 | Option | Default | |
 |---|---|---|
-| Average speed | 20 km/h | stops and lights included; lower it for the rush hour |
-| Wait at the terminus | 5 min | added to vehicles that turn back at the terminus |
+| Average speed | 14 km/h | stops and lights included; see [Accuracy](#accuracy) |
+| Wait at the terminus | 4 min | added to vehicles that turn back at the terminus |
 | Update every | 30 s | one request each; mind the 5000/day quota |
 | Ignore positions older than | 5 min | older vehicles are not shown |
 
@@ -223,6 +223,23 @@ It is an estimate from a position and an average speed, not a timetable:
 - A vehicle that leaves its route, or reports a trip it is not running, is
   ignored or misplaced.
 - Vehicles not reporting a trip are not shown at all.
+
+Measured with `script/accuracy.py` in Chișinău, 2026-11-02, 16:00–17:30 (the evening
+rush): 239 593 predictions scored against 13 124 real arrivals — the moment each
+vehicle actually passed each stop. At the defaults (14 km/h, 4 min at the terminus):
+
+| predicted ahead | median error | mean error | within ±2 min |
+|---|---|---|---|
+| 0–5 min | 0.1 min late | 1.2 min | 83 % |
+| 5–10 min | 0.0 min | 2.7 min | 52 % |
+| 10–20 min | 0.4 min early | 4.6 min | 35 % |
+| 20–40 min | 1.7 min early | 7.8 min | 22 % |
+| 40–60 min | 4.5 min early | 11.1 min | 15 % |
+
+The first version drove at 20 km/h and promised every vehicle too early — by
+2 minutes ten minutes out and by 9 half an hour out; the fitted average speed was
+13.1 km/h. Away from the rush hour vehicles are faster, so if your board shows
+them later than they come, raise the speed in the options.
 
 Nearest few minutes are good; half an hour out is a hint.
 

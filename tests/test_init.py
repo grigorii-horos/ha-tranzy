@@ -171,7 +171,7 @@ async def test_sensor_state_and_board(hass: HomeAssistant, api) -> None:
     await setup(hass, entry)
 
     state = hass.states.get("sensor.centru_w_side")
-    assert state.state == "0"  # 278 m at 20 km/h is under a minute
+    assert state.state == "1"  # 278 m at 14 km/h: 71 s
     assert state.attributes["unit_of_measurement"] == "min"
     board = state.attributes["arrivals"]
     assert [(a["vehicle"], a["via_terminal"]) for a in board] == [("V1", False), ("V2", True)]
@@ -187,7 +187,7 @@ async def test_sensor_state_and_board(hass: HomeAssistant, api) -> None:
         "distance_m": None,
         "via_terminal": False,
     }
-    assert 5 <= board[1]["minutes"] <= 8  # 834 m + 5 min at the terminus
+    assert 6 <= board[1]["minutes"] <= 8  # 834 m at 14 km/h (3.6 min) + 4 min at the terminus
 
 
 async def test_sensor_unknown_when_nothing_is_coming(hass: HomeAssistant, api) -> None:

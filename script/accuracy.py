@@ -33,8 +33,8 @@ from datetime import UTC, datetime, timedelta
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from board import STATIC, get, model  # noqa: E402
 
-SPEED = 20.0
-LAYOVER = timedelta(minutes=5)
+SPEED = 14.0
+LAYOVER = timedelta(minutes=4)
 HORIZON = timedelta(minutes=60)
 MAX_AGE = timedelta(minutes=5)
 SAMPLE_EVERY = timedelta(minutes=2)  # keep one prediction per vehicle/stop this often
