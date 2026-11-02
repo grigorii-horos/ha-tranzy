@@ -61,10 +61,24 @@ Home Assistant 2026.9 or newer.
 
 ### 1. Get an API key
 
-Sign up at <https://apps.tranzy.ai/accounts>. Create an **application**, add your
-agency to it, then **Add Key** inside the application.
+Sign up at <https://apps.tranzy.ai/accounts> — free, an e-mail and a password.
 
-![Tranzy account: an application with one agency](docs/images/tranzy-account.png)
+**a. Create an application.** *My apps → New Application*. Any name; under
+**Add Agency** pick the agency you need (several are allowed). A key works only
+for the agencies of its application.
+
+![New application with an agency](docs/images/tranzy-new-app.png)
+
+**b. Add a key to it.** On the application's card, **Add Key**. Any name; leave the
+restrictions empty — Home Assistant calls the API from your server, not from a
+website, so a website restriction would block it.
+
+![Add a key](docs/images/tranzy-add-key.png)
+
+**c. Copy the key.** Open the key: **Show Key**, then the copy button next to it.
+The same page shows the daily usage against the quota.
+
+![The key page: Show Key, copy, daily usage](docs/images/tranzy-key.png)
 
 The free plan allows 5 requests a second and 5000 a day; the integration uses
 about 2900 a day at the default 30 s interval.
