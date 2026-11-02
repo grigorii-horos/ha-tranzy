@@ -4,6 +4,7 @@
  *   type: custom:tranzy-board-card
  *   entity: sensor.gara
  *   rows: 6          # optional, default 6
+ *   routes: [47, 48] # optional, only these routes
  *   title: Вокзал    # optional, default the stop name
  *
  * Minutes are recomputed in the browser from each arrival's timestamp, so the
@@ -27,6 +28,7 @@ const TEXT = {
     stale: "data is stale",
     entity: "Stop sensor",
     rows: "Rows",
+    routes: "Only routes",
     title: "Title",
     via: "after the terminus",
   },
@@ -38,6 +40,7 @@ const TEXT = {
     stale: "данные устарели",
     entity: "Сенсор остановки",
     rows: "Строк",
+    routes: "Только маршруты",
     title: "Заголовок",
     via: "после конечной",
   },
@@ -56,6 +59,7 @@ class TranzyBoardCard extends HTMLElement {
       schema: [
         { name: "entity", required: true, selector: { entity: { filter: { integration: "tranzy", domain: "sensor" } } } },
         { name: "rows", selector: { number: { min: 1, max: 20, mode: "box" } } },
+        { name: "routes", selector: { text: { multiple: true } } },
         { name: "title", selector: { text: {} } },
       ],
       computeLabel: (s) => TEXT[lang(document.querySelector("home-assistant")?.hass)][s.name],
@@ -131,7 +135,9 @@ class TranzyBoardCard extends HTMLElement {
       body = `<div class="empty">${esc(t.unavailable)}</div>`;
     } else {
       const now = Date.now();
+      const only = (this._config.routes ?? []).map((r) => String(r).trim()).filter(Boolean);
       const rows = (a.arrivals ?? [])
+        .filter((x) => !only.length || only.includes(String(x.route)))
         .map((x) => ({ ...x, ms: new Date(x.arrival).getTime() - now }))
         .filter((x) => x.ms > -60000)
         .sort((p, q) => p.ms - q.ms)

@@ -27,7 +27,11 @@ type: custom:tranzy-board-card
 entity: sensor.gara_parcul_de_troleibuze_nr_2
 rows: 6        # optional
 title: Вокзал  # optional, default the stop's name
+routes: [47, 48]  # optional, show only these routes
 ```
+
+At a terminus the board shows departures: a vehicle arriving there is listed with
+its return trip, after the layover.
 
 ## How arrivals are estimated
 

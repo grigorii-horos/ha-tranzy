@@ -119,6 +119,17 @@ class ModelTest(unittest.TestCase):
         self.assertEqual(labels[21], "Centru   → South (5)")
         self.assertEqual(dict(self.idx.search_stops("nord"))[12], "Nord   → South (5) · terminus (5)")
 
+    def test_terminus_shows_departures_not_terminating_arrivals(self):
+        # stop 12 ends 1_0 and starts 1_1: a northbound vehicle at 3/4 of the line
+        # arrives in ~278 m, but leaves southbound only after the layover
+        arr = board(self.idx, 12, [vehicle(1, "1_0", 0.75)])
+        self.assertEqual(len(arr), 1)
+        a = arr[0]
+        self.assertEqual(a.headsign, "South")
+        self.assertTrue(a.via_terminal)
+        minutes = (a.arrival - NOW).total_seconds() / 60
+        self.assertAlmostEqual(minutes, 5 + 278 / (20 / 3.6) / 60, delta=0.2)
+
     def test_stop_title_tells_twin_poles_apart(self):
         self.assertEqual(self.idx.stop_title(11), "Centru → North")
         self.assertEqual(self.idx.stop_title(21), "Centru → South")

@@ -363,6 +363,10 @@ class TransitIndex:
 
         for trip_id in self.trips_by_stop.get(stop_id, []):
             trip = self.trips[trip_id]
+            if list(trip.stops)[-1] == stop_id:
+                # the trip ends here: nobody boards it. Its vehicles show up as
+                # departures of the return trip (via the terminus) instead.
+                continue
             at_stop = trip.stops[stop_id]
             for p in on_trip.get(trip_id, []):
                 if p.along <= at_stop + BEHIND_TOLERANCE_M:
